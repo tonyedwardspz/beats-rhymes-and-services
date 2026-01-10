@@ -2,4 +2,7 @@
   <Project Path="beats-rhymes-and-services.AppHost/beats-rhymes-and-services.AppHost.csproj" />
   <Project Path="beats-rhymes-and-services.ServiceDefaults/beats-rhymes-and-services.ServiceDefaults.csproj" />
   <Project Path="CMS/CMS.csproj" />
+  <Project Path="LLMAPI/LLMAPI.csproj" />
+  <Project Path="SharedLibrary/SharedLibrary.csproj" />
+  <Project Path="WhisperAPI/WhisperAPI.csproj" />
 </Solution>

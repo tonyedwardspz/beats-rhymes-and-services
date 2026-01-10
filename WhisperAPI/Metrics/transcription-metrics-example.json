@@ -1,0 +1,34 @@
+{
+  "transcriptionMetrics": [
+    {
+      "timestamp": "2025-11-04T19:17:34.259849Z",
+      "modelName": "ggml-base",
+      "transcriptionType": "File Upload",
+      "sessionId": "7d2392cf-85bf-49b1-951d-9aa51131b08e",
+      "chunkIndex": null,
+      "fileSizeBytes": 106252,
+      "audioDurationSeconds": 3.192375,
+      "totalTimeMs": 3211,
+      "preprocessingTimeMs": 759,
+      "transcriptionTimeMs": 307,
+      "success": true,
+      "errorMessage": null,
+      "transcribedText": " This is a test of the recording."
+    },
+    {
+      "timestamp": "2025-11-08T20:15:05.997162Z",
+      "modelName": "ggml-base",
+      "transcriptionType": "File Upload",
+      "sessionId": "057a2888-c9e8-465f-9f98-0b92453e65a1",
+      "chunkIndex": null,
+      "fileSizeBytes": 82102,
+      "audioDurationSeconds": 2.437688,
+      "totalTimeMs": 5039,
+      "preprocessingTimeMs": 842,
+      "transcriptionTimeMs": 327,
+      "success": true,
+      "errorMessage": null,
+      "transcribedText": " Test test 123."
+    }
+  ]
+}

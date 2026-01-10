@@ -14,6 +14,8 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\CMS\CMS.csproj" />
+    <ProjectReference Include="..\LLMAPI\LLMAPI.csproj" />
+    <ProjectReference Include="..\WhisperAPI\WhisperAPI.csproj" />
 	</ItemGroup>
 
 </Project>

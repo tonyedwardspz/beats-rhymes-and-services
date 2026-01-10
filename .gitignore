@@ -363,3 +363,10 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+.DS_Store
+
+WhisperAPI/WhisperModels/ggml-*
+WhisperAPI/Metrics/transcription-metrics.json
+
+Models/**/*.gguf
+Models/**/*.bin
