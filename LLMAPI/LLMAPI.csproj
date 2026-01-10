@@ -17,4 +17,15 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.0" />
   </ItemGroup>
 
+  <Target Name="CopyModels" AfterTargets="Build">
+    <ItemGroup>
+      <ModelFiles Include="$(MSBuildProjectDirectory)\..\Models\llm\**\*" />
+    </ItemGroup>
+
+    <Copy
+      SourceFiles="@(ModelFiles)"
+      DestinationFolder="$(OutputPath)Models\llm\%(RecursiveDir)"
+      SkipUnchangedFiles="true" />
+  </Target>
+
 </Project>
