@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="App.Views.AboutPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             Title="About">
+
+    <ScrollView>
+        <VerticalStackLayout Spacing="20" Padding="20">
+            
+            <!-- App Logo and Title -->
+            <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                <Image Source="dotnet_bot.png" 
+                       HeightRequest="100" 
+                       WidthRequest="100" />
+                
+                <Label Text="Beats, Rhymes, and Neural Nets" 
+                       FontSize="24" 
+                       FontAttributes="Bold" 
+                       HorizontalOptions="Center"
+                       TextColor="White" />
+                
+                <Label Text="Version 1.0.0" 
+                       FontSize="16" 
+                       TextColor="LightGray" 
+                       HorizontalOptions="Center" />
+            </VerticalStackLayout>
+
+            <!-- LLM Model Information -->
+            <Frame BackgroundColor="#2D2D30" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🤖 LLM Model Information" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White" />
+                    
+                    <ActivityIndicator x:Name="LLMLoadingIndicator" 
+                                       IsRunning="True" 
+                                       Color="White"
+                                       HorizontalOptions="Center" />
+                    
+                    <Label x:Name="LLMInfoLabel" 
+                           Text="Loading LLM information..." 
+                           LineBreakMode="WordWrap" 
+                           TextColor="LightGray"
+                           FontFamily="Courier" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Whisper Model Information -->
+            <Frame BackgroundColor="#2D2D30" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🎤 Whisper Model Information" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White" />
+                    
+                    <ActivityIndicator x:Name="WhisperLoadingIndicator" 
+                                       IsRunning="True" 
+                                       Color="White"
+                                       HorizontalOptions="Center" />
+                    
+                    <Label x:Name="WhisperInfoLabel" 
+                           Text="Loading Whisper information..." 
+                           LineBreakMode="WordWrap" 
+                           TextColor="LightGray"
+                           FontFamily="Courier" />
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- System Information -->
+            <Frame BackgroundColor="#2D2D30" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="💻 System Information" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White" />
+                    
+                    <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10" RowSpacing="8">
+                        <Label Grid.Row="0" Grid.Column="0" Text="Device:" FontAttributes="Bold" TextColor="White" />
+                        <Label Grid.Row="0" Grid.Column="1" x:Name="DeviceModelLabel" TextColor="LightGray" />
+                        
+                        <Label Grid.Row="1" Grid.Column="0" Text="Platform:" FontAttributes="Bold" TextColor="White" />
+                        <Label Grid.Row="1" Grid.Column="1" x:Name="PlatformLabel" TextColor="LightGray" />
+                        
+                        <Label Grid.Row="2" Grid.Column="0" Text="OS Version:" FontAttributes="Bold" TextColor="White" />
+                        <Label Grid.Row="2" Grid.Column="1" x:Name="OSVersionLabel" TextColor="LightGray" />
+                        
+                        <Label Grid.Row="3" Grid.Column="0" Text="App Version:" FontAttributes="Bold" TextColor="White" />
+                        <Label Grid.Row="3" Grid.Column="1" x:Name="AppVersionLabel" TextColor="LightGray" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+
+            <!-- Developer Information -->
+            <Frame BackgroundColor="#2D2D30" Padding="15" CornerRadius="8">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="👨‍💻 Developer Information" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White" />
+                    
+                    <Label Text="Built with ❤️ for demonstration purposes" 
+                           HorizontalOptions="Center"
+                           TextColor="LightGray" />
+                    
+                    <Button Text="View Source Code on GitHub" 
+                            BackgroundColor="#0078D4" 
+                            TextColor="White"
+                            CornerRadius="6"
+                            Clicked="OnViewSourceClicked" />
+                </VerticalStackLayout>
+            </Frame>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

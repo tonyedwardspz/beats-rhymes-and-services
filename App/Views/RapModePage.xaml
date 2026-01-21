@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="App.Views.RapModePage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:App.ViewModels"
+             xmlns:models="clr-namespace:App.Models"
+             x:DataType="vm:RapModeViewModel"
+             Title="Rap Mode">
+
+    <Grid Margin="20" ColumnSpacing="20" RowSpacing="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Column: Chunked Transcription -->
+        <Grid Grid.Column="0" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <!-- Left Column Controls -->
+            <ScrollView Grid.Row="0" VerticalOptions="Start">
+                <StackLayout Spacing="15">
+                    <!-- Chunked Transcription Section -->
+                    
+                    <Button Text="{Binding ChunkedButtonText}"
+                            Command="{Binding ToggleChunkedCommand}"
+                            BackgroundColor="{Binding ChunkedButtonColor}"
+                            FontSize="20"
+                            Margin="0,0,0,15"/>
+                </StackLayout>
+            </ScrollView>
+            
+            <!-- Left Column Results -->
+            <Grid Grid.Row="1" VerticalOptions="FillAndExpand">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <ScrollView Grid.Row="1" VerticalOptions="FillAndExpand">
+                    <Label Text="{Binding TranscriptionResult}"
+                           FontSize="24"
+                           TextColor="Black"
+                           BackgroundColor="LightGray"
+                           Padding="15"
+                           VerticalOptions="FillAndExpand"
+                           LineBreakMode="WordWrap" />
+                </ScrollView>
+            </Grid>
+        </Grid>
+        
+        <!-- Right Column: Placeholder -->
+        <Grid Grid.Column="1" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <!-- Right Column Controls -->
+            <ScrollView Grid.Row="0" VerticalOptions="Start">
+                <StackLayout Spacing="15">
+                    <!-- Placeholder Section -->
+                    
+                    <Button Text="Bars Booster"
+                            Command="{Binding AutoCorrectCommand}"
+                            BackgroundColor="DarkBlue"
+                            TextColor="Azure"
+                            FontSize="20"
+                            Margin="0,0,0,15"/>
+                </StackLayout>
+            </ScrollView>
+            
+            <!-- Right Column Results -->
+            <Grid Grid.Row="1" VerticalOptions="FillAndExpand">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <ScrollView Grid.Row="1" VerticalOptions="FillAndExpand">
+                    <Label Text="{Binding CorrectedLyrics}"
+                           FontSize="24"
+                           TextColor="Black"
+                           BackgroundColor="LightGray"
+                           Padding="15"
+                           VerticalOptions="FillAndExpand"
+                           LineBreakMode="WordWrap" />
+                </ScrollView>
+            </Grid>
+        </Grid>
+    </Grid>
+
+</ContentPage>

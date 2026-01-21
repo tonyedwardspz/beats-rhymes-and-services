@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage x:Class="App.Views.LLMPage"
+             xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:converters="clr-namespace:App.Converters"
+             xmlns:vm="clr-namespace:App.ViewModels"
+             xmlns:models="clr-namespace:App.Models"
+             x:DataType="vm:LLMViewModel"
+             Title="LLM Chat">
+    
+    <ContentPage.Resources>
+        <ResourceDictionary>
+            <converters:InvertedBoolConverter x:Key="InvertedBoolConverter" />
+        </ResourceDictionary>
+    </ContentPage.Resources>
+
+    <Grid Margin="20" ColumnSpacing="20" RowSpacing="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="2*" />
+        </Grid.ColumnDefinitions>
+        
+        <!-- Left Column: Controls -->
+        <Grid Grid.Column="0" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <!-- Input Section -->
+            <Frame Grid.Row="0" 
+                   BackgroundColor="#2D2D30" 
+                   Padding="15" 
+                   CornerRadius="8"
+                   VerticalOptions="FillAndExpand">
+                <VerticalStackLayout Spacing="10" VerticalOptions="Fill">
+                    <Label Text="Enter your prompt:" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="White" 
+                           />
+                    
+                    <Editor Text="{Binding Prompt}" 
+                            Placeholder="Type your prompt here..."
+                            PlaceholderColor="Gray"
+                            TextColor="White"
+                            BackgroundColor="#1E1E1E"
+                            VerticalOptions="Fill"
+                            HeightRequest="325"
+                            IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}" />
+                    
+                    <!-- Mode Toggle -->
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                        <Label Grid.Column="0"
+                               Text="Chat Mode:"
+                               TextColor="White"
+                               VerticalOptions="Center" />
+                        <Switch Grid.Column="1"
+                                IsToggled="{Binding IsChatMode}"
+                                OnColor="Green"
+                                ThumbColor="White"
+                                VerticalOptions="Center" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="*,*" ColumnSpacing="20">
+                        <Button Grid.Column="0"
+                                Text="Generate Response" 
+                                Command="{Binding GenerateCommand}"
+                                BackgroundColor="Green"
+                                TextColor="White"
+                                CornerRadius="6"
+                                IsEnabled="{Binding IsGenerating, Converter={StaticResource InvertedBoolConverter}}" />
+                        
+                        <Button Grid.Column="1"
+                                Text="Clear Chat" 
+                                Command="{Binding ClearConversationCommand}"
+                                BackgroundColor="Red"
+                                TextColor="White"
+                                CornerRadius="6" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Frame>
+            
+            <!-- Model Status Section -->
+            <Frame Grid.Row="1" 
+                   BackgroundColor="#2D2D30" 
+                   Padding="15" 
+                   CornerRadius="8"
+                   Margin="0,0,0,15">
+                <VerticalStackLayout Spacing="10">
+                    <Label Text="🤖 LLM Model Information" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           HorizontalOptions="Center"
+                           TextColor="White" />
+                    
+                    <ScrollView HeightRequest="200">
+                        <Label Text="{Binding ModelInfo}" 
+                               FontFamily="Courier"
+                               LineBreakMode="WordWrap"
+                               TextColor="LightGray" />
+                    </ScrollView>
+                    
+                    <Label Text="{Binding StatusMessage}" 
+                           FontAttributes="Bold" 
+                           TextColor="White" />
+                    
+                    <Button Text="Refresh Model Info" 
+                            Command="{Binding CheckModelInfoCommand}"
+                            BackgroundColor="#0078D4" 
+                            TextColor="White"
+                            CornerRadius="6" />
+                </VerticalStackLayout>
+            </Frame>
+        </Grid>
+        
+        <!-- Right Column: Conversation -->
+        <Grid Grid.Column="1" VerticalOptions="FillAndExpand">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <Label Text="Conversation" 
+                   Grid.Row="0"
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   TextColor="White"
+                   Margin="0,0,0,10" />
+            
+            <ScrollView Grid.Row="1" 
+                       VerticalOptions="FillAndExpand"
+                       BackgroundColor="#1E1E1E"
+                       x:Name="ConversationScrollView">
+                <CollectionView ItemsSource="{Binding Conversation}"
+                               BackgroundColor="Transparent">
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ConversationMessage">
+                            <Grid Margin="10,5">
+                                <!-- User Message (Right aligned) -->
+                                <Frame BackgroundColor="#0078D4"
+                                       Padding="15"
+                                       CornerRadius="15"
+                                       Margin="100,0,0,0"
+                                       HorizontalOptions="End"
+                                       IsVisible="{Binding IsUser}">
+                                    <Label Text="{Binding Content}"
+                                           TextColor="White"
+                                           FontSize="14"
+                                           LineBreakMode="WordWrap" />
+                                </Frame>
+                                
+                                <!-- AI Message (Left aligned) -->
+                                <Frame BackgroundColor="#2D2D30"
+                                       Padding="15"
+                                       CornerRadius="15"
+                                       Margin="0,0,100,0"
+                                       HorizontalOptions="Start"
+                                       IsVisible="{Binding IsUser, Converter={StaticResource InvertedBoolConverter}}">
+                                    <Label Text="{Binding Content}"
+                                           TextColor="White"
+                                           FontSize="14"
+                                           LineBreakMode="WordWrap" />
+                                </Frame>
+                            </Grid>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+                </CollectionView>
+            </ScrollView>
+        </Grid>
+    </Grid>
+
+</ContentPage>

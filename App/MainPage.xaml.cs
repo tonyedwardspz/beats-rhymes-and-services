@@ -2,22 +2,23 @@
 
 public partial class MainPage : ContentPage
 {
-    int count = 0;
-
     public MainPage()
     {
         InitializeComponent();
     }
 
-    private void OnCounterClicked(object? sender, EventArgs e)
-    {
-        count++;
+    private async void OnLLMChatClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//LLMPage");
+        }
 
-        if (count == 1)
-            CounterBtn.Text = $"Clicked {count} time";
-        else
-            CounterBtn.Text = $"Clicked {count} times";
+        private async void OnTranscriptionClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//WhisperPage");
+        }
 
-        SemanticScreenReader.Announce(CounterBtn.Text);
-    }
+        private async void OnRapModeClicked(object sender, EventArgs e)
+        {
+            await Shell.Current.GoToAsync("//RapModePage");
+        }
 }

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:App.ViewModels"
+             xmlns:models="clr-namespace:App.Models"
+             x:DataType="vm:WhisperPageViewModel"
+             x:Class="App.Views.WhisperPage">
+    <ContentPage.Content>
+        <Grid Margin="20" ColumnSpacing="20" RowSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Column: Controls -->
+            <ScrollView Grid.Column="0" VerticalOptions="FillAndExpand">
+                <StackLayout Spacing="15">
+                    <!-- Recording Section -->
+                    <Label Text="Record and Transcribe" FontSize="18" FontAttributes="Bold" />
+                    
+                    <Button Text="{Binding RecordingButtonText}"
+                            Command="{Binding ToggleRecordingCommand}"
+                            BackgroundColor="{Binding RecordingButtonColor}" />
+                    
+                    <Button Text="Transcribe"
+                            Command="{Binding ProcessCommand}"
+                            BackgroundColor="Blue" 
+                            TextColor="Azure"/>
+                    
+                    <Button Text="{Binding PlaybackButtonText}"
+                            Command="{Binding TogglePlaybackCommand}"
+                            BackgroundColor="{Binding PlaybackButtonColor}" />
+                    
+                    
+                    <!-- Chunked Transcription Section -->
+                    <Label Text="Streaming Transcription" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0" />
+                    
+                    <Button Text="{Binding ChunkedButtonText}"
+                            Command="{Binding ToggleChunkedCommand}"
+                            BackgroundColor="{Binding ChunkedButtonColor}" />
+
+                    
+                    <!-- File Upload Section -->
+                    <Label Text="File Upload" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0" />
+                    
+                    <Button Text="Select Audio File"
+                            Command="{Binding SelectFileCommand}"
+                            BackgroundColor="LightBlue" />
+                    
+                    <Label Text="{Binding SelectedFileName}" 
+                           FontSize="16" 
+                           TextColor="Azure"
+                           HorizontalOptions="Center"
+                           LineBreakMode="TailTruncation" />
+                    
+                    <Button Text="Transcribe Selected File"
+                            Command="{Binding TranscribeFileCommand}"
+                            BackgroundColor="Green"
+                            IsEnabled="{Binding HasSelectedFile}" />
+                    
+                    
+                    <!-- Model Selection Section -->
+                    <Label Text="Model Selection" FontSize="18" FontAttributes="Bold" Margin="0,20,0,0" />
+                    
+                    <Picker ItemsSource="{Binding AvailableModels}"
+                            SelectedItem="{Binding SelectedModel}"
+                            ItemDisplayBinding="{Binding Name}"
+                            Title="Select Model" />
+                    
+                    <Label Text="{Binding SelectedModel.Name, StringFormat='Current: {0}'}" 
+                           FontSize="16" 
+                           TextColor="Azure" 
+                           HorizontalOptions="Center" 
+                           />
+                    
+                    <Button Text="Switch Model"
+                            Command="{Binding SwitchModelCommand}"
+                            BackgroundColor="Orange" />
+                    
+                                        
+                    <Button Text="Reload Available Models"
+                            Command="{Binding LoadModelsCommand}"
+                            BackgroundColor="Purple"
+                            TextColor="Azure"/>
+                </StackLayout>
+            </ScrollView>
+            
+            <!-- Right Column: Results -->
+            <Grid Grid.Column="1" VerticalOptions="FillAndExpand">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <Label Text="Transcription Results" 
+                       Grid.Row="0"
+                       FontSize="18" 
+                       FontAttributes="Bold" 
+                       Margin="0,0,0,10" />
+                
+                <ScrollView Grid.Row="1" VerticalOptions="FillAndExpand">
+                    <Label Text="{Binding TranscriptionResult}"
+                           FontSize="24"
+                           TextColor="Black"
+                           BackgroundColor="LightGray"
+                           Padding="15"
+                           VerticalOptions="FillAndExpand"
+                           LineBreakMode="WordWrap" />
+                </ScrollView>
+            </Grid>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

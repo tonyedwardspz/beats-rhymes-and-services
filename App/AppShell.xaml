@@ -4,11 +4,92 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
     xmlns:local="clr-namespace:App"
+    xmlns:views="clr-namespace:App.Views"
     Title="App">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <Shell.ItemTemplate>
+        <DataTemplate x:DataType="FlyoutItem">
+            <Grid ColumnDefinitions="*">
+                <Label
+                       Text="{Binding Title}"
+                       FontSize="22"
+                       Padding="10,5,5,5"/>
+            </Grid>
+        </DataTemplate>
+    </Shell.ItemTemplate>
+
+    
+    <!-- Flyout Header -->
+    <Shell.FlyoutHeader>
+        <Grid BackgroundColor="#E0E0E0" HeightRequest="200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            
+            <Image Source="beats_splash.png" 
+                   Grid.Row="0"
+                   Aspect="AspectFit"
+                   HeightRequest="120"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Grid>
+    </Shell.FlyoutHeader>
+
+    
+    <!-- Flyout Footer -->
+    <Shell.FlyoutFooter>
+        <Grid BackgroundColor="#E0E0E0" HeightRequest="50">
+            <Label Text="v1.0.0" 
+                   FontSize="12"
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center" />
+        </Grid>
+    </Shell.FlyoutFooter>
+
+    
+    <!-- Flyout Items -->
+    <FlyoutItem Title="Home">
+        <ShellContent Title="Home"
+                      ContentTemplate="{DataTemplate local:MainPage}"
+                      Route="MainPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="LLM Chat">
+        <ShellContent Title="LLM Chat"
+                      ContentTemplate="{DataTemplate views:LLMPage}"
+                      Route="LLMPage" />
+    </FlyoutItem>
+    
+    <FlyoutItem Title="Transcription">
+        <ShellContent Title="Transcription"
+                      ContentTemplate="{DataTemplate views:WhisperPage}"
+                      Route="WhisperPage" />
+    </FlyoutItem>
+    
+    <FlyoutItem Title="Rap Mode">
+        <ShellContent Title="Rap Mode"
+                      ContentTemplate="{DataTemplate views:RapModePage}"
+                      Route="RapModePage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Metrics">
+        <ShellContent Title="Metrics"
+                      ContentTemplate="{DataTemplate views:MetricsPage}"
+                      Route="MetricsPage" />
+    </FlyoutItem>
+
+    <!-- You can add more flyout items here -->
+    <FlyoutItem Title="Settings">
+        <ShellContent Title="Settings"
+                      ContentTemplate="{DataTemplate views:SettingsPage}"
+                      Route="SettingsPage" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="About">
+        <ShellContent Title="About"
+                      ContentTemplate="{DataTemplate views:AboutPage}"
+                      Route="AboutPage" />
+    </FlyoutItem>
 
 </Shell>
