@@ -5,17 +5,25 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <IsAspireHost>true</IsAspireHost>
     <UserSecretsId>1dc7aa11-d493-4626-914b-db67f1fe0e00</UserSecretsId>
   </PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.0" />
+		<AspireProjectOrPackageReference Include="Aspire.Hosting" />
+    <AspireProjectOrPackageReference Include="Aspire.Hosting.AppHost" />
+    <AspireProjectOrPackageReference Include="Aspire.Hosting.Maui" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Aspire.Hosting.Maui" Version="13.1.0-preview.1.25616.3" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\CMS\CMS.csproj" />
     <ProjectReference Include="..\LLMAPI\LLMAPI.csproj" />
     <ProjectReference Include="..\WhisperAPI\WhisperAPI.csproj" />
+    <ProjectReference Include="..\App\App.csproj" />
 	</ItemGroup>
 
 </Project>

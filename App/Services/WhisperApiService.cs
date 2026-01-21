@@ -39,28 +39,28 @@ public class WhisperApiService : IWhisperApiService
         try
         {
             _logger.LogInformation("Requesting model details from WhisperAPI");
-            
+
             var response = await _httpClient.GetAsync("/api/whisper/modelDetails");
-            
+
             if (response.IsSuccessStatusCode)
             {
                 var modelDetails = await response.Content.ReadAsStringAsync();
-                
+
                 if (!string.IsNullOrEmpty(modelDetails))
                 {
                     _logger.LogInformation("Successfully retrieved model details: {ModelDetails}", modelDetails);
                     return ApiResult<string>.Success(modelDetails);
                 }
-                
+
                 return ApiResult<string>.Failure("Failed to get model details response");
             }
-            
+
             var errorContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Failed to get model details. Status: {StatusCode}, Content: {Content}", 
+            _logger.LogError("Failed to get model details. Status: {StatusCode}, Content: {Content}",
                 response.StatusCode, errorContent);
-            
+
             return ApiResult<string>.Failure(
-                $"WhisperAPI request failed with status {response.StatusCode}", 
+                $"WhisperAPI request failed with status {response.StatusCode}",
                 (int)response.StatusCode);
         }
         catch (Exception ex)
@@ -68,6 +68,42 @@ public class WhisperApiService : IWhisperApiService
             _logger.LogError(ex, "Unexpected error while getting model details");
             return ApiResult<string>.Failure($"Unexpected error: {ex.Message}");
         }
+    }
+
+    public async Task<WhisperModelInfo> GetModelDetails()
+    {
+        //try
+        //{
+            _logger.LogInformation("Requesting model details from WhisperAPI");
+
+            return await _httpClient.GetFromJsonAsync<WhisperModelInfo>("whisperapi/api/whisper/modelDetails");
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var modelDetails = await response.Content.ReadAsStringAsync();
+
+        //        if (!string.IsNullOrEmpty(modelDetails))
+        //        {
+        //            _logger.LogInformation("Successfully retrieved model details: {ModelDetails}", modelDetails);
+        //            return ApiResult<string>.Success(modelDetails);
+        //        }
+
+        //        return ApiResult<string>.Failure("Failed to get model details response");
+        //    }
+
+        //    var errorContent = await response.Content.ReadAsStringAsync();
+        //    _logger.LogError("Failed to get model details. Status: {StatusCode}, Content: {Content}",
+        //        response.StatusCode, errorContent);
+
+        //    return ApiResult<string>.Failure(
+        //        $"WhisperAPI request failed with status {response.StatusCode}",
+        //        (int)response.StatusCode);
+        //}
+        //catch (Exception ex)
+        //{
+        //    _logger.LogError(ex, "Unexpected error while getting model details");
+        //    return ApiResult<string>.Failure($"Unexpected error: {ex.Message}");
+        //}
     }
 
     /// <inheritdoc />

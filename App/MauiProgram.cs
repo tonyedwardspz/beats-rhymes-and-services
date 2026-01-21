@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Maui.Controls.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 
 namespace App;
 
@@ -81,9 +83,20 @@ public static class MauiProgram
                 client.BaseAddress = new Uri("http://localhost:5087"); // WhisperAPI
                 client.Timeout = TimeSpan.FromMinutes(5);
             });
-            
-            // Register ViewModels
-            builder.Services.AddTransient<LLMViewModel>();
+
+
+            // Add service defaults
+            builder.AddServiceDefaults();
+
+            // Configure HTTP client with service discovery
+            builder.Services.AddHttpClient<WhisperApiService>(client =>
+            {
+                // Service name matches the name used in App Host
+                client.BaseAddress = new Uri("https+http://whisperapi");
+            });
+
+        // Register ViewModels
+        builder.Services.AddTransient<LLMViewModel>();
             builder.Services.AddTransient<WhisperPageViewModel>();
             builder.Services.AddTransient<MetricsViewModel>();
             builder.Services.AddTransient<RapModeViewModel>();

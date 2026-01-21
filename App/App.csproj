@@ -1,9 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net10.0-maccatalyst</TargetFrameworks>
+        <!--<TargetFrameworks>net10.0-maccatalyst</TargetFrameworks>-->
         <!-- <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks> -->
-        <!-- <TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks> -->
+		<TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks>
+		<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>
 
         <!-- Note for MacCatalyst:
         The default runtime is maccatalyst-x64, except in Release config, in which case the default is maccatalyst-x64;maccatalyst-arm64.
@@ -44,16 +45,16 @@
         <MauiIcon Include="Resources\AppIcon\appicon.png" />
 
         <!-- Splash Screen -->
-        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128"/>
+        <MauiSplashScreen Include="Resources\Splash\splash.svg" Color="#512BD4" BaseSize="128,128" />
 
         <!-- Images -->
-        <MauiImage Include="Resources\Images\*"/>
+        <MauiImage Include="Resources\Images\*" />
 
         <!-- Custom Fonts -->
-        <MauiFont Include="Resources\Fonts\*"/>
+        <MauiFont Include="Resources\Fonts\*" />
 
         <!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
-        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)"/>
+        <MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
 
         <!-- Prompts -->
 		<MauiAsset Include="Prompts\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
@@ -62,15 +63,14 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.1" />
-        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20"/>
-        <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.20"/>
-        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0"/>
+        <PackageReference Include="Microsoft.Maui.Controls" Version="10.0.20" />
+        <PackageReference Include="Microsoft.Maui.Essentials" Version="10.0.20" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
 
 		<PackageReference Include="Plugin.Maui.Audio" Version="4.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-	  <Folder Include="Models\" />
 	  <Folder Include="Prompts\" />
 	  <Folder Include="Services\" />
 	</ItemGroup>
@@ -81,6 +81,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\SharedLibrary\SharedLibrary.csproj" />
+	  <ProjectReference Include="..\App.MauiServiceDefaults\App.MauiServiceDefaults.csproj" />
 	</ItemGroup>
 
 </Project>

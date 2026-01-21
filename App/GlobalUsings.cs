@@ -26,6 +26,8 @@ global using App.Services;
 global using App.ViewModels;
 global using App.Views;
 global using App.Converters;
+#if MACCATALYST
 global using Foundation;
+#endif
 global using Microsoft.Maui;
 global using Microsoft.Maui.Hosting;

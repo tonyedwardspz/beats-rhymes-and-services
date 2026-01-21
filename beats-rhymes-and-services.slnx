@@ -1,4 +1,5 @@
 <Solution>
+  <Project Path="App.MauiServiceDefaults/App.MauiServiceDefaults.csproj" />
   <Project Path="App/App.csproj" />
   <Project Path="beats-rhymes-and-services.AppHost/beats-rhymes-and-services.AppHost.csproj" />
   <Project Path="beats-rhymes-and-services.ServiceDefaults/beats-rhymes-and-services.ServiceDefaults.csproj" />
