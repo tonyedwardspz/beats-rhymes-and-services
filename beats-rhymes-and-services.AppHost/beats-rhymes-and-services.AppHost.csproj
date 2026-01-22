@@ -12,7 +12,7 @@
 	<ItemGroup>
 		<AspireProjectOrPackageReference Include="Aspire.Hosting" />
     <AspireProjectOrPackageReference Include="Aspire.Hosting.AppHost" />
-    <AspireProjectOrPackageReference Include="Aspire.Hosting.Maui" />
+    <!--<AspireProjectOrPackageReference Include="Aspire.Hosting.Maui" Version="13.1.0-preview.1.25616.3"  />-->
 	</ItemGroup>
 
 	<ItemGroup>
