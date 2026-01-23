@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Antiforgery;
+using Xabe.FFmpeg;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +23,8 @@ var commonPaths = new[]
     "/usr/local/bin",
     "/usr/bin", 
     "/opt/homebrew/bin",
-    "/opt/local/bin"
+    "/opt/local/bin",
+    "/opt/homebrew/bin/ffmpeg"
 }.Concat(pathEnv)
 .Where(p => !string.IsNullOrEmpty(p))
 .Distinct()
@@ -30,12 +32,13 @@ var commonPaths = new[]
 
 foreach (var path in commonPaths)
 {
-    var ffmpegExe = Path.Combine(path, "ffmpeg");
+     var ffmpegExe = Path.Combine(path, "ffmpeg");
     if (File.Exists(ffmpegExe))
     {
         try
         {
             FFmpeg.SetExecutablesPath(path);
+            
             ffmpegPath = path;
             ffmpegFound = true;
             Console.WriteLine($"FFMPEG found at: {path}");

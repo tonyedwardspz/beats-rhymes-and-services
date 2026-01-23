@@ -3,7 +3,7 @@
     <PropertyGroup>
         <!--<TargetFrameworks>net10.0-maccatalyst</TargetFrameworks>-->
         <!-- <TargetFrameworks>net10.0-android;net10.0-ios;net10.0-maccatalyst</TargetFrameworks> -->
-      <TargetFramework>net10.0-iOS</TargetFramework>
+      <TargetFramework>net10.0-maccatalyst</TargetFramework>
       <!--<TargetFrameworks Condition="$([MSBuild]::IsOSPlatform('windows'))">$(TargetFrameworks);net10.0-windows10.0.19041.0</TargetFrameworks>-->
 
         <!-- Note for MacCatalyst:

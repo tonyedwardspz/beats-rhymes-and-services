@@ -1,4 +1,9 @@
-﻿namespace App;
+﻿#if MACCATALYST
+using AppKit;
+using UIKit;
+#endif
+
+namespace App;
 
 public partial class MainPage : ContentPage
 {

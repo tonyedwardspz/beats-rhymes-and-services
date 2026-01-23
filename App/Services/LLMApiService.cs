@@ -3,80 +3,27 @@ using SharedLibrary.Models;
 namespace App.Services;
 
 /// <summary>
-/// Service for communicating with the LLM LLMAPI
+/// Service for communicating with the LLM API
 /// </summary>
-public class LLMApiService : ILLMApiService
+public class LLMApiService : BaseApiService, ILLMApiService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<LLMApiService> _logger;
-    private readonly ApiConfiguration _config;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public LLMApiService(
         HttpClient httpClient, 
         ILogger<LLMApiService> logger,
         IOptions<ApiConfiguration> config)
+        : base(httpClient, logger)
     {
-        _httpClient = httpClient;
-        _logger = logger;
-        _config = config.Value;
-        
-        // Configure HttpClient
-        _httpClient.BaseAddress = new Uri(_config.BaseUrl);
-        _httpClient.Timeout = _config.Timeout;
-        
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
-        };
+        var configValue = config.Value;
+        HttpClient.BaseAddress = new Uri(configValue.BaseUrl);
+        HttpClient.Timeout = configValue.Timeout;
     }
 
     /// <inheritdoc />
     public async Task<ApiResult<ModelInfoResponse>> GetModelInfoAsync()
     {
-        try
-        {
-            _logger.LogInformation("Requesting model information from LLMAPI");
-            
-            var response = await _httpClient.GetAsync("/api/llm/info");
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var modelInfo = await response.Content.ReadFromJsonAsync<ModelInfoResponse>(_jsonOptions);
-                
-                if (modelInfo != null)
-                {
-                    _logger.LogInformation("Successfully retrieved model info: {ModelInfo}", modelInfo.ModelInfo);
-                    return ApiResult<ModelInfoResponse>.Success(modelInfo);
-                }
-                
-                return ApiResult<ModelInfoResponse>.Failure("Failed to deserialize model info response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Failed to get model info. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            return ApiResult<ModelInfoResponse>.Failure(
-                $"LLMAPI request failed with status {response.StatusCode}", 
-                (int)response.StatusCode);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while requesting model info");
-            return ApiResult<ModelInfoResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while getting model info");
-            return ApiResult<ModelInfoResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while getting model info");
-            return ApiResult<ModelInfoResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return await ExecuteGetAsync<ModelInfoResponse>(
+            "/api/llm/info",
+            "GetModelInfo");
     }
 
     /// <inheritdoc />
@@ -89,68 +36,13 @@ public class LLMApiService : ILLMApiService
             return ApiResult<GenerateResponse>.Failure("Prompt cannot be empty", 400);
         }
 
-        try
-        {
-            _logger.LogInformation("Generating response for prompt (length: {Length})", prompt.Length);
-            
-            var request = new GenerateRequest(prompt);
-            var response = await _httpClient.PostAsJsonAsync("/api/llm/generate", request, _jsonOptions, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var generateResponse = await response.Content.ReadFromJsonAsync<GenerateResponse>(_jsonOptions, cancellationToken);
-                
-                if (generateResponse != null)
-                {
-                    _logger.LogInformation("Successfully generated response (length: {Length})", 
-                        generateResponse.Response.Length);
-                    return ApiResult<GenerateResponse>.Success(generateResponse);
-                }
-                
-                return ApiResult<GenerateResponse>.Failure("Failed to deserialize generate response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to generate response. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            // Try to parse error response
-            var errorMessage = "Unknown error";
-            try
-            {
-                var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(errorContent, _jsonOptions);
-                if (errorResponse != null)
-                {
-                    errorMessage = errorResponse.Error;
-                }
-            }
-            catch
-            {
-                // Use default error message if parsing fails
-            }
-            
-            return ApiResult<GenerateResponse>.Failure(errorMessage, (int)response.StatusCode);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Generate response request was cancelled");
-            return ApiResult<GenerateResponse>.Failure("Request was cancelled", 499);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while generating response");
-            return ApiResult<GenerateResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while generating response");
-            return ApiResult<GenerateResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while generating response");
-            return ApiResult<GenerateResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        Logger.LogInformation("Generating response for prompt (length: {Length})", prompt.Length);
+        
+        return await ExecutePostAsync<GenerateResponse, GenerateRequest>(
+            "/api/llm/generate",
+            new GenerateRequest(prompt),
+            "GenerateResponse",
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -164,30 +56,28 @@ public class LLMApiService : ILLMApiService
             return ApiResult<string>.Failure("Prompt cannot be empty", 400);
         }
 
-        if (onTokenReceived == null)
-        {
-            throw new ArgumentNullException(nameof(onTokenReceived));
-        }
+        ArgumentNullException.ThrowIfNull(onTokenReceived);
 
         try
         {
-            _logger.LogInformation("Starting streaming response for prompt (length: {Length})", prompt.Length);
+            Logger.LogInformation("Starting streaming response for prompt (length: {Length})", prompt.Length);
             
             var request = new GenerateRequest(prompt);
-            var jsonContent = JsonSerializer.Serialize(request, _jsonOptions);
+            var jsonContent = JsonSerializer.Serialize(request, JsonOptions);
             var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
             
-            using var response = await _httpClient.PostAsync("/api/llm/stream", content, cancellationToken);
+            using var response = await HttpClient.PostAsync("/api/llm/stream", content, cancellationToken);
             
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-                _logger.LogError("Failed to start streaming response. Status: {StatusCode}, Content: {Content}", 
+                Logger.LogError("Failed to start streaming response. Status: {StatusCode}, Content: {Content}", 
                     response.StatusCode, errorContent);
                 
-                return ApiResult<string>.Failure(
-                    $"LLMAPI request failed with status {response.StatusCode}", 
-                    (int)response.StatusCode);
+                var errorMessage = TryParseErrorMessage(errorContent) 
+                    ?? $"LLMAPI request failed with status {response.StatusCode}";
+                
+                return ApiResult<string>.Failure(errorMessage, (int)response.StatusCode);
             }
             
             var fullResponse = new StringBuilder();
@@ -206,28 +96,28 @@ public class LLMApiService : ILLMApiService
             }
             
             var finalResponse = fullResponse.ToString();
-            _logger.LogInformation("Completed streaming response (length: {Length})", finalResponse.Length);
+            Logger.LogInformation("Completed streaming response (length: {Length})", finalResponse.Length);
             
             return ApiResult<string>.Success(finalResponse);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
-            _logger.LogInformation("Streaming response request was cancelled");
+            Logger.LogInformation("Streaming response request was cancelled");
             return ApiResult<string>.Failure("Request was cancelled", 499);
         }
         catch (HttpRequestException ex)
         {
-            _logger.LogError(ex, "Network error while streaming response");
-            return ApiResult<string>.Failure("Network error: Unable to connect to LLMAPI");
+            Logger.LogError(ex, "Network error while streaming response");
+            return ApiResult<string>.Failure("Network error: Unable to connect to API");
         }
         catch (TaskCanceledException ex)
         {
-            _logger.LogError(ex, "Request timeout while streaming response");
+            Logger.LogError(ex, "Request timeout while streaming response");
             return ApiResult<string>.Failure("Request timeout");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error while streaming response");
+            Logger.LogError(ex, "Unexpected error while streaming response");
             return ApiResult<string>.Failure($"Unexpected error: {ex.Message}");
         }
     }
@@ -235,48 +125,10 @@ public class LLMApiService : ILLMApiService
     /// <inheritdoc />
     public async Task<ApiResult<LLMConfigurationResponse>> GetConfigurationAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Requesting LLM configuration from LLMAPI");
-            
-            var response = await _httpClient.GetAsync("/api/llm/config", cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var configuration = await response.Content.ReadFromJsonAsync<LLMConfigurationResponse>(_jsonOptions, cancellationToken);
-                
-                if (configuration != null)
-                {
-                    _logger.LogInformation("Successfully retrieved LLM configuration");
-                    return ApiResult<LLMConfigurationResponse>.Success(configuration);
-                }
-                
-                return ApiResult<LLMConfigurationResponse>.Failure("Failed to deserialize configuration response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to get LLM configuration. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            return ApiResult<LLMConfigurationResponse>.Failure(
-                $"LLMAPI request failed with status {response.StatusCode}", 
-                (int)response.StatusCode);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while requesting LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while getting LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while getting LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return await ExecuteGetAsync<LLMConfigurationResponse>(
+            "/api/llm/config",
+            "GetConfiguration",
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -284,121 +136,21 @@ public class LLMApiService : ILLMApiService
         LLMConfigurationUpdateRequest request, 
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Updating LLM configuration");
-            
-            var response = await _httpClient.PutAsJsonAsync("/api/llm/config", request, _jsonOptions, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var configuration = await response.Content.ReadFromJsonAsync<LLMConfigurationResponse>(_jsonOptions, cancellationToken);
-                
-                if (configuration != null)
-                {
-                    _logger.LogInformation("Successfully updated LLM configuration");
-                    return ApiResult<LLMConfigurationResponse>.Success(configuration);
-                }
-                
-                return ApiResult<LLMConfigurationResponse>.Failure("Failed to deserialize configuration response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to update LLM configuration. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            // Try to parse error response
-            var errorMessage = "Unknown error";
-            try
-            {
-                var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(errorContent, _jsonOptions);
-                if (errorResponse != null)
-                {
-                    errorMessage = errorResponse.Error;
-                }
-            }
-            catch
-            {
-                // Use default error message if parsing fails
-            }
-            
-            return ApiResult<LLMConfigurationResponse>.Failure(errorMessage, (int)response.StatusCode);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while updating LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while updating LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while updating LLM configuration");
-            return ApiResult<LLMConfigurationResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return await ExecutePutAsync<LLMConfigurationResponse, LLMConfigurationUpdateRequest>(
+            "/api/llm/config",
+            request,
+            "UpdateConfiguration",
+            cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<ApiResult<CreateChatSessionResponse>> CreateChatSessionAsync(CancellationToken cancellationToken = default)
     {
-        try
-        {
-            _logger.LogInformation("Creating new chat session");
-            
-            var response = await _httpClient.PostAsync("/api/llm/chat/create", null, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var sessionResponse = await response.Content.ReadFromJsonAsync<CreateChatSessionResponse>(_jsonOptions, cancellationToken);
-                
-                if (sessionResponse != null)
-                {
-                    _logger.LogInformation("Successfully created chat session: {SessionId}", sessionResponse.SessionId);
-                    return ApiResult<CreateChatSessionResponse>.Success(sessionResponse);
-                }
-                
-                return ApiResult<CreateChatSessionResponse>.Failure("Failed to deserialize chat session response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to create chat session. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            // Try to parse error response
-            var errorMessage = "Unknown error";
-            try
-            {
-                var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(errorContent, _jsonOptions);
-                if (errorResponse != null)
-                {
-                    errorMessage = errorResponse.Error;
-                }
-            }
-            catch
-            {
-                // Use default error message if parsing fails
-            }
-            
-            return ApiResult<CreateChatSessionResponse>.Failure(errorMessage, (int)response.StatusCode);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while creating chat session");
-            return ApiResult<CreateChatSessionResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while creating chat session");
-            return ApiResult<CreateChatSessionResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while creating chat session");
-            return ApiResult<CreateChatSessionResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        return await ExecutePostAsync<CreateChatSessionResponse, object?>(
+            "/api/llm/chat/create",
+            null,
+            "CreateChatSession",
+            cancellationToken);
     }
 
     /// <inheritdoc />
@@ -417,68 +169,12 @@ public class LLMApiService : ILLMApiService
             return ApiResult<ChatMessageResponse>.Failure("Message cannot be empty", 400);
         }
 
-        try
-        {
-            _logger.LogInformation("Sending chat message to session {SessionId} (length: {Length})", sessionId, message.Length);
-            
-            var request = new ChatMessageRequest(message);
-            var response = await _httpClient.PostAsJsonAsync($"/api/llm/chat/{sessionId}", request, _jsonOptions, cancellationToken);
-            
-            if (response.IsSuccessStatusCode)
-            {
-                var chatResponse = await response.Content.ReadFromJsonAsync<ChatMessageResponse>(_jsonOptions, cancellationToken);
-                
-                if (chatResponse != null)
-                {
-                    _logger.LogInformation("Successfully received chat response (length: {Length})", 
-                        chatResponse.Response.Length);
-                    return ApiResult<ChatMessageResponse>.Success(chatResponse);
-                }
-                
-                return ApiResult<ChatMessageResponse>.Failure("Failed to deserialize chat response");
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Failed to send chat message. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            // Try to parse error response
-            var errorMessage = "Unknown error";
-            try
-            {
-                var errorResponse = JsonSerializer.Deserialize<ErrorResponse>(errorContent, _jsonOptions);
-                if (errorResponse != null)
-                {
-                    errorMessage = errorResponse.Error;
-                }
-            }
-            catch
-            {
-                // Use default error message if parsing fails
-            }
-            
-            return ApiResult<ChatMessageResponse>.Failure(errorMessage, (int)response.StatusCode);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            _logger.LogInformation("Chat message request was cancelled");
-            return ApiResult<ChatMessageResponse>.Failure("Request was cancelled", 499);
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "Network error while sending chat message");
-            return ApiResult<ChatMessageResponse>.Failure("Network error: Unable to connect to LLMAPI");
-        }
-        catch (TaskCanceledException ex)
-        {
-            _logger.LogError(ex, "Request timeout while sending chat message");
-            return ApiResult<ChatMessageResponse>.Failure("Request timeout");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Unexpected error while sending chat message");
-            return ApiResult<ChatMessageResponse>.Failure($"Unexpected error: {ex.Message}");
-        }
+        Logger.LogInformation("Sending chat message to session {SessionId} (length: {Length})", sessionId, message.Length);
+        
+        return await ExecutePostAsync<ChatMessageResponse, ChatMessageRequest>(
+            $"/api/llm/chat/{sessionId}",
+            new ChatMessageRequest(message),
+            "SendChatMessage",
+            cancellationToken);
     }
-
 }
