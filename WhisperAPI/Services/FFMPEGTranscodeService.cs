@@ -1,8 +1,10 @@
 // <copyright file="FFMpegTranscodeService.cs" company="Drastic Actions">
 // Copyright (c) Drastic Actions. All rights reserved.
+// Borrowed with love and appreciation
 // https://github.com/drasticactions/MauiWhisper
 // </copyright>
 
+using Xabe.FFmpeg;
 
 namespace WhisperAPI.Services;
 

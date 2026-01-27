@@ -1,38 +1,23 @@
 using App.Models;
 using SharedLibrary.Models;
 using TranscriptionMetrics = App.Models.TranscriptionMetrics;
-using System.Text.Json;
 
 namespace App.Services;
 
 /// <summary>
 /// Service for fetching transcription metrics from the WhisperAPI
 /// </summary>
-public class MetricsApiService : IMetricsApiService
+public class MetricsApiService : BaseApiService, IMetricsApiService
 {
-    private readonly HttpClient _httpClient;
-    private readonly ILogger<MetricsApiService> _logger;
-    private readonly ApiConfiguration _config;
-    private readonly JsonSerializerOptions _jsonOptions;
-
     public MetricsApiService(
         HttpClient httpClient, 
         ILogger<MetricsApiService> logger,
         IOptions<ApiConfiguration> config)
+        : base(httpClient, logger)
     {
-        _httpClient = httpClient;
-        _logger = logger;
-        _config = config.Value;
-        
-        // Configure HttpClient
-        _httpClient.BaseAddress = new Uri(_config.WhisperBaseURL);
-        _httpClient.Timeout = _config.Timeout;
-        
-        _jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            PropertyNameCaseInsensitive = true
-        };
+        var configValue = config.Value;
+        HttpClient.BaseAddress = new Uri(configValue.WhisperBaseURL);
+        HttpClient.Timeout = configValue.Timeout;
     }
 
     /// <inheritdoc />
@@ -40,37 +25,25 @@ public class MetricsApiService : IMetricsApiService
     {
         try
         {
-            _logger.LogInformation("Fetching transcription metrics from WhisperAPI");
+            Logger.LogInformation("GetMetrics: requesting from /api/whisper/metrics");
             
-            var response = await _httpClient.GetAsync("/api/whisper/metrics");
+            var response = await HttpClient.GetAsync("/api/whisper/metrics");
             
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var metricsContainer = JsonSerializer.Deserialize<SharedLibrary.Models.MetricsContainer>(content, _jsonOptions);
+                var metricsContainer = JsonSerializer.Deserialize<MetricsContainer>(content, JsonOptions);
                 
                 if (metricsContainer?.TranscriptionMetrics != null)
                 {
-                    _logger.LogInformation("Successfully fetched {Count} metrics", metricsContainer.TranscriptionMetrics.Count);
+                    Logger.LogInformation("GetMetrics completed successfully. Fetched {Count} metrics", 
+                        metricsContainer.TranscriptionMetrics.Count);
+                    
                     // Convert from SharedLibrary.Models.TranscriptionMetrics to App.Models.TranscriptionMetrics
                     var mauiMetrics = metricsContainer.TranscriptionMetrics
-                        .Select(m => new TranscriptionMetrics
-                        {
-                            Timestamp = m.Timestamp,
-                            ModelName = m.ModelName,
-                            TranscriptionType = m.TranscriptionType,
-                            SessionId = m.SessionId,
-                            ChunkIndex = m.ChunkIndex,
-                            FileSizeBytes = m.FileSizeBytes,
-                            AudioDurationSeconds = m.AudioDurationSeconds,
-                            TotalTimeMs = m.TotalTimeMs,
-                            PreprocessingTimeMs = m.PreprocessingTimeMs,
-                            TranscriptionTimeMs = m.TranscriptionTimeMs,
-                            Success = m.Success,
-                            ErrorMessage = m.ErrorMessage,
-                            TranscribedText = m.TranscribedText
-                        })
+                        .Select(MapToAppMetrics)
                         .ToList();
+                    
                     return ApiResult<List<TranscriptionMetrics>>.Success(mauiMetrics);
                 }
                 
@@ -78,49 +51,59 @@ public class MetricsApiService : IMetricsApiService
             }
             
             var errorContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Failed to fetch metrics. Status: {StatusCode}, Content: {Content}", 
+            Logger.LogError("GetMetrics failed. Status: {StatusCode}, Content: {Content}", 
                 response.StatusCode, errorContent);
             
-            return ApiResult<List<TranscriptionMetrics>>.Failure(
-                $"Metrics API request failed with status {response.StatusCode}", 
-                (int)response.StatusCode);
+            var errorMessage = TryParseErrorMessage(errorContent) 
+                ?? $"Metrics API request failed with status {response.StatusCode}";
+            
+            return ApiResult<List<TranscriptionMetrics>>.Failure(errorMessage, (int)response.StatusCode);
+        }
+        catch (HttpRequestException ex)
+        {
+            Logger.LogError(ex, "Network error during GetMetrics");
+            return ApiResult<List<TranscriptionMetrics>>.Failure("Network error: Unable to connect to API");
+        }
+        catch (TaskCanceledException ex)
+        {
+            Logger.LogError(ex, "Request timeout during GetMetrics");
+            return ApiResult<List<TranscriptionMetrics>>.Failure("Request timeout");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Exception occurred while fetching metrics");
-            return ApiResult<List<TranscriptionMetrics>>.Failure($"Exception: {ex.Message}");
+            Logger.LogError(ex, "Unexpected error during GetMetrics");
+            return ApiResult<List<TranscriptionMetrics>>.Failure($"Unexpected error: {ex.Message}");
         }
     }
 
     /// <inheritdoc />
     public async Task<ApiResult<bool>> ClearMetricsAsync()
     {
-        try
-        {
-            _logger.LogInformation("Clearing all transcription metrics");
-            
-            var response = await _httpClient.DeleteAsync("/api/whisper/metrics");
-            
-            if (response.IsSuccessStatusCode)
-            {
-                _logger.LogInformation("Successfully cleared all metrics");
-                return ApiResult<bool>.Success(true);
-            }
-            
-            var errorContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("Failed to clear metrics. Status: {StatusCode}, Content: {Content}", 
-                response.StatusCode, errorContent);
-            
-            return ApiResult<bool>.Failure(
-                $"Clear metrics API request failed with status {response.StatusCode}", 
-                (int)response.StatusCode);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Exception occurred while clearing metrics");
-            return ApiResult<bool>.Failure($"Exception: {ex.Message}");
-        }
+        return await ExecuteDeleteAsync(
+            "/api/whisper/metrics",
+            "ClearMetrics");
     }
 
+    /// <summary>
+    /// Maps from SharedLibrary.Models.TranscriptionMetrics to App.Models.TranscriptionMetrics
+    /// </summary>
+    private static TranscriptionMetrics MapToAppMetrics(SharedLibrary.Models.TranscriptionMetrics source)
+    {
+        return new TranscriptionMetrics
+        {
+            Timestamp = source.Timestamp,
+            ModelName = source.ModelName,
+            TranscriptionType = source.TranscriptionType,
+            SessionId = source.SessionId,
+            ChunkIndex = source.ChunkIndex,
+            FileSizeBytes = source.FileSizeBytes,
+            AudioDurationSeconds = source.AudioDurationSeconds,
+            TotalTimeMs = source.TotalTimeMs,
+            PreprocessingTimeMs = source.PreprocessingTimeMs,
+            TranscriptionTimeMs = source.TranscriptionTimeMs,
+            Success = source.Success,
+            ErrorMessage = source.ErrorMessage,
+            TranscribedText = source.TranscribedText
+        };
+    }
 }
-

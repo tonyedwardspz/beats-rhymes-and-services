@@ -250,7 +250,7 @@ public class WhisperPageViewModel : BaseViewModel
 			}
 			
 			// Send to Whisper API for transcription
-			var result = await whisperApiService.TranscribeWavAsync(audioStream, "recording.wav", "File Upload");
+			var result = await whisperApiService.TranscribeWavAsync(audioStream, "recording.caf", "File Upload");
 			
 			if (result.IsSuccess && result.Data != null)
 			{

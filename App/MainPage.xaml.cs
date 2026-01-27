@@ -1,4 +1,4 @@
-﻿namespace App;
+namespace App;
 
 public partial class MainPage : ContentPage
 {
