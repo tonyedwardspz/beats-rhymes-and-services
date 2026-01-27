@@ -73,11 +73,11 @@ public static class MauiProgram
 
             // Register HTTP client and services
             builder.Services.AddHttpClient<ILLMApiService, LLMApiService>();
-            builder.Services.AddHttpClient<IWhisperApiService, WhisperApiService>(client =>
-            {
-                client.BaseAddress = new Uri("http://localhost:5087"); // WhisperAPI
-                client.Timeout = TimeSpan.FromMinutes(5);
-            });
+            // builder.Services.AddHttpClient<IWhisperApiService, WhisperApiService>(client =>
+            // {
+            //     client.BaseAddress = new Uri("http://localhost:5087"); // WhisperAPI
+            //     client.Timeout = TimeSpan.FromMinutes(5);
+            // });
             builder.Services.AddHttpClient<IMetricsApiService, MetricsApiService>(client =>
             {
                 client.BaseAddress = new Uri("http://localhost:5087"); // WhisperAPI
